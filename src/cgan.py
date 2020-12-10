@@ -15,7 +15,7 @@ generative adversarial networks." arXiv preprint arXiv:1511.06434 (2015).
 adversarial nets." arXiv preprint arXiv:1411.1784 (2014).
 '''
 
-
+import tensorflow as tf
 from tensorflow.keras.layers import Activation, Dense, Input
 from tensorflow.keras.layers import Conv2D, Flatten
 from tensorflow.keras.layers import Reshape, Conv2DTranspose
@@ -309,6 +309,8 @@ def build_and_train_models():
                           optimizer=optimizer,
                           metrics=['accuracy'])
     discriminator.summary()
+    tf.keras.utils.plot_model(discriminator, show_shapes=True)
+
 
     # build generator model
     input_shape = (latent_size, )

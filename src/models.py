@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 
-def create_mobilenet_model(input_dim=(224, 224, 3), nb_classes=8):
+def create_mobilenet_model(input_dim=(224, 224, 3)):
     model = tf.keras.applications.MobileNetV2(
         input_shape=input_dim,
         alpha=1.0,
@@ -19,5 +19,8 @@ def create_mobilenet_model(input_dim=(224, 224, 3), nb_classes=8):
     return mobilenet_model
 
 
-def build_descriminator(inputs, labels, image_size):
+def build_descriminator_based_mobile_net(inputs, labels, image_size):
     pretrained_net_input=(image_size, image_size, 3)
+
+def build_mnist_descriminator(inputs, labels, image_size):
+    pass

@@ -330,7 +330,6 @@ def build_and_train_models():
                         optimizer=optimizer,
                         metrics=['accuracy'])
     adversarial.summary()
-
     # train discriminator and adversarial networks
     models = (generator, discriminator, adversarial)
     data = (x_train, y_train)
@@ -358,17 +357,4 @@ def test_generator(generator, class_label=None):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    help_ = "Load generator h5 model with trained weights"
-    parser.add_argument("-g", "--generator", help=help_)
-    help_ = "Specify a specific digit to generate"
-    parser.add_argument("-d", "--digit", type=int, help=help_)
-    args = parser.parse_args()
-    if args.generator:
-        generator = load_model(args.generator)
-        class_label = None
-        if args.digit is not None:
-            class_label = args.digit
-        test_generator(generator, class_label)
-    else:
-        build_and_train_models()
+    build_and_train_models()

@@ -257,7 +257,7 @@ def plot_images(generator,
     os.makedirs(model_name, exist_ok=True)
     filename = os.path.join(model_name, "%05d.png" % step)
     images = generator.predict([noise_input, noise_class])
-    print(model_name , " labels for generated images: ", np.argmax(noise_class, axis=1))
+    print(model_name , " labels for generated images: ", np.argmax(noise_class, axis=1).reshape((-1)))
     plt.figure(figsize=(2.2, 2.2))
     num_images = images.shape[0]
     image_size = images.shape[1]
@@ -317,7 +317,7 @@ def build_and_train_models():
     inputs = Input(shape=input_shape, name='z_input')
     generator = build_generator(inputs, labels, image_size)
     generator.summary()
-
+    tf.keras.utils.plot_model(generator, show_shapes=True)
     # build adversarial model = generator + discriminator
     optimizer = RMSprop(lr=lr*0.5, decay=decay*0.5)
     # freeze the weights of discriminator during adversarial training
@@ -330,6 +330,7 @@ def build_and_train_models():
                         optimizer=optimizer,
                         metrics=['accuracy'])
     adversarial.summary()
+    tf.keras.utils.plot_model(adversarial, show_shapes=True)
     # train discriminator and adversarial networks
     models = (generator, discriminator, adversarial)
     data = (x_train, y_train)

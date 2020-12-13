@@ -1,8 +1,7 @@
 import tensorflow as tf
 import numpy as np
-import pandas as pd
 
-from src.cgan import plot_images
+from src.cgan_mnist.cgan import plot_images
 
 def create_mobilenet_model(input_dim=(224, 224, 3)):
     model = tf.keras.applications.MobileNetV2(

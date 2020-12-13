@@ -1,7 +1,4 @@
-from src.cgan import build_and_train_models
 import tensorflow as tf
-
-from src.models import create_mobilenet_model
 
 if __name__ == "__main__":
     #build_and_train_models()

@@ -1,32 +1,191 @@
 import tensorflow as tf
 
-def conv_block(input, num_filters, stride):
+def resnet_conv_block(input, num_filters, stride):
     f1, f2 = num_filters
 
     # first conv, 1x1, stride reduction
-    x = tf.keras.layers.Conv2D(filters=f1, kernel_size=1, activation=None, stride=stride, padding='same')(input)
+    x = tf.keras.layers.Conv2D(filters=f1, kernel_size=1, activation=None, strides=stride, padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(input)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
 
     # second conv, 3x3
-    x = tf.keras.layers.Conv2D(filters=f1, kernel_size=3, activation=None, stride=(1,1), padding='same')(x)
+    x = tf.keras.layers.Conv2D(filters=f1, kernel_size=3, activation=None, strides=(1,1), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
 
     # third conv, 1x1
-    x = tf.keras.layers.Conv2D(filters=f2, kernel_size=1, activation=None, stride=(1,1), padding='same')(x)
+    x = tf.keras.layers.Conv2D(filters=f2, kernel_size=1, activation=None, strides=(1,1), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
     # shortcut connection, but with 1x1 conv to decrease the feature map
-    shortcut = tf.keras.layers.Conv2D(filters=f2, kernel_size=1, activation=None, stride=stride, padding='same')(input)
+    shortcut = tf.keras.layers.Conv2D(filters=f2, kernel_size=1, activation=None, strides=stride, padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(input)
     shortcut = tf.keras.layers.BatchNormalization()(shortcut)
 
     # connection
-    add=tf.keras.layers.Add([shortcut, x])
+    add=tf.keras.layers.Add()([shortcut, x])
     add=tf.keras.layers.ReLU()(add)
 
     return add
 
 def resnet_identity(input, num_filters):
-    # TODO: make it done
-    pass
+    f1, f2=num_filters
+
+    # first conv, 1x1
+    x = tf.keras.layers.Conv2D(filters=f1, kernel_size=1, activation=None, strides=(1,1), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(input)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
+
+    # second conv, 3x3
+    x = tf.keras.layers.Conv2D(filters=f1, kernel_size=3, activation=None, strides=(1,1), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
+
+    # third conv, 1x1
+    x = tf.keras.layers.Conv2D(filters=f2, kernel_size=1, activation=None, strides=(1,1), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+
+    # shortcut connection
+    add=tf.keras.layers.Add()([input, x])
+    add=tf.keras.layers.ReLU()(add)
+
+    return add
+
+def resnet_conv_transpose(input, num_filters, stride):
+    f1,f2 = num_filters
+
+    # first conv, 1x1, stride reduction
+    x = tf.keras.layers.Conv2DTranspose(filters=f1, kernel_size=1, activation=None, strides=stride, padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(input)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
+
+    # second conv, 3x3
+    x = tf.keras.layers.Conv2DTranspose(filters=f1, kernel_size=3, activation=None, strides=(1, 1), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
+
+    # third conv, 1x1
+    x = tf.keras.layers.Conv2DTranspose(filters=f2, kernel_size=1, activation=None, strides=(1, 1), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+
+    # shortcut connection, but with 1x1 conv to decrease the feature map
+    shortcut = tf.keras.layers.Conv2DTranspose(filters=f2, kernel_size=1, activation=None, strides=stride, padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(input)
+    shortcut = tf.keras.layers.BatchNormalization()(shortcut)
+
+    # connection
+    add = tf.keras.layers.Add()([shortcut, x])
+    add = tf.keras.layers.ReLU()(add)
+
+    return add
+
+def resnet_identity_transponse(input, num_filters):
+    f1, f2=num_filters
+
+    # first conv, 1x1
+    x = tf.keras.layers.Conv2DTranspose(filters=f1, kernel_size=1, activation=None, strides=(1,1), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(input)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
+
+    # second conv, 3x3
+    x = tf.keras.layers.Conv2DTranspose(filters=f1, kernel_size=3, activation=None, strides=(1,1), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
+
+    # third conv, 1x1
+    x = tf.keras.layers.Conv2DTranspose(filters=f2, kernel_size=1, activation=None, strides=(1,1), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+
+    # shortcut connection
+    add=tf.keras.layers.Add()([input, x])
+    add=tf.keras.layers.ReLU()(add)
+
+    return add
+
+def create_custom_resnet(input_shape):
+    input=tf.keras.layers.Input(input_shape)
+
+    x=tf.keras.layers.Conv2D(filters=64, kernel_size=7, activation=None, strides=(2,2), padding='same')(input)
+    x=tf.keras.layers.BatchNormalization()(x)
+    x=tf.keras.layers.ReLU()(x)
+
+    x=resnet_conv_block(input=x, num_filters=(64,256), stride=(2,2))
+    x=resnet_identity(input=x, num_filters=(64,256))
+    x = resnet_identity(input=x, num_filters=(64, 256))
+
+    x=resnet_conv_block(input=x, num_filters=(128,512), stride=(2,2))
+    x=resnet_identity(input=x, num_filters=(128,512))
+    x = resnet_identity(input=x, num_filters=(128,512))
+
+    x=resnet_conv_block(input=x, num_filters=(256,1024), stride=(2,2))
+    x=resnet_identity(input=x, num_filters=(256,1024))
+    x = resnet_identity(input=x, num_filters=(256,1024))
+
+    x=resnet_conv_block(input=x, num_filters=(512,1024), stride=(2,2))
+    x = resnet_identity(input=x, num_filters=(512,1024))
+
+
+    return input, x
+
+def create_custom_resnet_transponse(input_shape):
+    input=tf.keras.layers.Input(input_shape)
+
+    x=resnet_conv_transpose(input=input, num_filters=(64,256), stride=(2,2))
+    x=resnet_identity_transponse(input=x, num_filters=(64,256))
+    x = resnet_identity_transponse(input=x, num_filters=(64, 256))
+
+    x=resnet_conv_transpose(input=x, num_filters=(128,512), stride=(2,2))
+    x=resnet_identity_transponse(input=x, num_filters=(128,512))
+    x = resnet_identity_transponse(input=x, num_filters=(128,512))
+
+    x=resnet_conv_transpose(input=x, num_filters=(256,1024), stride=(2,2))
+    x=resnet_identity_transponse(input=x, num_filters=(256,1024))
+    x = resnet_identity_transponse(input=x, num_filters=(256,1024))
+
+    x=resnet_conv_transpose(input=x, num_filters=(512,1024), stride=(2,2))
+    x = resnet_identity_transponse(input=x, num_filters=(512,1024))
+
+    x=tf.keras.layers.Conv2DTranspose(filters=64, kernel_size=7, activation=None, strides=(2,2), padding='same')(x)
+    x=tf.keras.layers.BatchNormalization()(x)
+    x=tf.keras.layers.ReLU()(x)
+
+    return input, x
+
+
+def create_discriminator_resnet_based(x_input, y_input, image_shape):
+    # 224x224x3
+    dense_y=tf.keras.layers.Dense(image_shape*image_shape*1, activation=None)(y_input)
+    reshape=tf.keras.layers.Reshape((image_shape,image_shape,1))(dense_y)
+    concat=tf.keras.layers.concatenate([x_input, reshape])
+    concat=tf.keras.layers.ReLU()(concat)
+
+    x = resnet_conv_block(input=concat, num_filters=(64, 256), stride=(2, 2))
+    x = resnet_identity(input=x, num_filters=(64, 256))
+    x = resnet_identity(input=x, num_filters=(64, 256))
+
+    x = resnet_conv_block(input=x, num_filters=(128, 512), stride=(2, 2))
+    x = resnet_identity(input=x, num_filters=(128, 512))
+    x = resnet_identity(input=x, num_filters=(128, 512))
+
+    x = resnet_conv_block(input=x, num_filters=(256, 1024), stride=(2, 2))
+    x = resnet_identity(input=x, num_filters=(256, 1024))
+    x = resnet_identity(input=x, num_filters=(256, 1024))
+
+    x = resnet_conv_block(input=x, num_filters=(512, 1024), stride=(2, 2))
+    x = resnet_identity(input=x, num_filters=(512, 1024))
+
+    x = tf.keras.layers.Conv2DTranspose(filters=64, kernel_size=7, activation=None, strides=(2, 2), padding='same')(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
+
+    x=tf.keras.layers.GlobalAveragePooling2D()(x)
+    x=tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x=tf.keras.layers.Dense(1, activation='sigmoid')(x)
+    model=tf.keras.Model(inputs=[x_input, y_input], outputs=x)
+    tf.keras.utils.plot_model(model, show_shapes=True)
+    return model
+
+
+if __name__ == "__main__":
+    input_x=tf.keras.layers.Input((224,224,3))
+    input_y=tf.keras.layers.Input((7))
+    model=create_discriminator_resnet_based(input_x, input_y, 224)
+    model.summary()

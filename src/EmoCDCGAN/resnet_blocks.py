@@ -100,56 +100,6 @@ def resnet_identity_transponse(input, num_filters):
 
     return add
 
-def create_custom_resnet(input_shape):
-    input=tf.keras.layers.Input(input_shape)
-
-    x=tf.keras.layers.Conv2D(filters=64, kernel_size=7, activation=None, strides=(2,2), padding='same')(input)
-    x=tf.keras.layers.BatchNormalization()(x)
-    x=tf.keras.layers.ReLU()(x)
-
-    x=resnet_conv_block(input=x, num_filters=(64,256), stride=(2,2))
-    x=resnet_identity(input=x, num_filters=(64,256))
-    x = resnet_identity(input=x, num_filters=(64, 256))
-
-    x=resnet_conv_block(input=x, num_filters=(128,512), stride=(2,2))
-    x=resnet_identity(input=x, num_filters=(128,512))
-    x = resnet_identity(input=x, num_filters=(128,512))
-
-    x=resnet_conv_block(input=x, num_filters=(256,1024), stride=(2,2))
-    x=resnet_identity(input=x, num_filters=(256,1024))
-    x = resnet_identity(input=x, num_filters=(256,1024))
-
-    x=resnet_conv_block(input=x, num_filters=(512,1024), stride=(2,2))
-    x = resnet_identity(input=x, num_filters=(512,1024))
-
-
-    return input, x
-
-def create_custom_resnet_transponse(input_shape):
-    input=tf.keras.layers.Input(input_shape)
-
-    x=resnet_conv_transpose(input=input, num_filters=(64,256), stride=(2,2))
-    x=resnet_identity_transponse(input=x, num_filters=(64,256))
-    x = resnet_identity_transponse(input=x, num_filters=(64, 256))
-
-    x=resnet_conv_transpose(input=x, num_filters=(128,512), stride=(2,2))
-    x=resnet_identity_transponse(input=x, num_filters=(128,512))
-    x = resnet_identity_transponse(input=x, num_filters=(128,512))
-
-    x=resnet_conv_transpose(input=x, num_filters=(256,1024), stride=(2,2))
-    x=resnet_identity_transponse(input=x, num_filters=(256,1024))
-    x = resnet_identity_transponse(input=x, num_filters=(256,1024))
-
-    x=resnet_conv_transpose(input=x, num_filters=(512,1024), stride=(2,2))
-    x = resnet_identity_transponse(input=x, num_filters=(512,1024))
-
-    x=tf.keras.layers.Conv2DTranspose(filters=64, kernel_size=7, activation=None, strides=(2,2), padding='same')(x)
-    x=tf.keras.layers.BatchNormalization()(x)
-    x=tf.keras.layers.ReLU()(x)
-
-    return input, x
-
-
 def create_discriminator_resnet_based(x_input, y_input, image_shape):
     # 224x224x3
     dense_y=tf.keras.layers.Dense(image_shape*image_shape*1, activation=None)(y_input)
@@ -172,7 +122,7 @@ def create_discriminator_resnet_based(x_input, y_input, image_shape):
     x = resnet_conv_block(input=x, num_filters=(512, 1024), stride=(2, 2))
     x = resnet_identity(input=x, num_filters=(512, 1024))
 
-    x = tf.keras.layers.Conv2DTranspose(filters=64, kernel_size=7, activation=None, strides=(2, 2), padding='same')(x)
+    x = tf.keras.layers.Conv2D(filters=64, kernel_size=7, activation=None, strides=(2, 2), padding='same')(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
 
@@ -180,12 +130,54 @@ def create_discriminator_resnet_based(x_input, y_input, image_shape):
     x=tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x=tf.keras.layers.Dense(1, activation='sigmoid')(x)
     model=tf.keras.Model(inputs=[x_input, y_input], outputs=x)
-    tf.keras.utils.plot_model(model, show_shapes=True)
+    tf.keras.utils.plot_model(model, show_shapes=True, to_file='discriminator_resnet_based_model.png')
     return model
+
+def create_generator_resnet_based(x_input, y_input, discriminator_output_map_shape=(7,7,64)):
+    concat=tf.keras.layers.concatenate([x_input, y_input])
+    x=tf.keras.layers.Flatten()(concat)
+    x=tf.keras.layers.Dense(discriminator_output_map_shape[0]*
+                            discriminator_output_map_shape[1]*
+                            discriminator_output_map_shape[2], activation=None)(x)
+    x=tf.keras.layers.Reshape(discriminator_output_map_shape)(x)
+    x=tf.keras.layers.BatchNormalization()(x)
+    x=tf.keras.layers.ReLU()(x)
+
+    x = resnet_conv_transpose(input=x, num_filters=(64, 256), stride=(2, 2))
+    x = resnet_identity_transponse(input=x, num_filters=(64, 256))
+    x = resnet_identity_transponse(input=x, num_filters=(64, 256))
+
+    x = resnet_conv_transpose(input=x, num_filters=(128, 512), stride=(2, 2))
+    x = resnet_identity_transponse(input=x, num_filters=(128, 512))
+    x = resnet_identity_transponse(input=x, num_filters=(128, 512))
+
+    x = resnet_conv_transpose(input=x, num_filters=(256, 1024), stride=(2, 2))
+    x = resnet_identity_transponse(input=x, num_filters=(256, 1024))
+    x = resnet_identity_transponse(input=x, num_filters=(256, 1024))
+
+    x = resnet_conv_transpose(input=x, num_filters=(512, 1024), stride=(2, 2))
+    x = resnet_identity_transponse(input=x, num_filters=(512, 1024))
+
+    x = tf.keras.layers.Conv2DTranspose(filters=128, kernel_size=7, activation=None, strides=(2, 2), padding='same')(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
+
+    x = tf.keras.layers.Conv2DTranspose(filters=3, kernel_size=7, activation=None, strides=(1,1), padding='same')(x)
+    x = tf.keras.layers.Activation(tf.keras.activations.tanh)(x)
+
+    model=tf.keras.Model(inputs=[input_x, input_y], outputs=x)
+    tf.keras.utils.plot_model(model, show_shapes=True, to_file='generator_resnet_based_model.png')
+    return model
+
 
 
 if __name__ == "__main__":
     input_x=tf.keras.layers.Input((224,224,3))
     input_y=tf.keras.layers.Input((7))
     model=create_discriminator_resnet_based(input_x, input_y, 224)
+    model.summary()
+
+    input_x=tf.keras.layers.Input((100,))
+    input_y = tf.keras.layers.Input((7,))
+    model=create_generator_resnet_based(input_x, input_y)
     model.summary()

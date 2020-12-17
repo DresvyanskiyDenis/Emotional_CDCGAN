@@ -19,11 +19,6 @@ def create_mobilenet_model(input_dim=(224, 224, 3)):
     return mobilenet_model
 
 
-def build_descriminator_based_mobile_net(inputs, labels, image_size, num_channels=3):
-    pretrained_net_input=(image_size, image_size, num_channels)
-
-def build_own_discriminator(inputs, labels, image_size, num_channels=3):
-    
 
 
 if __name__ == "__main__":

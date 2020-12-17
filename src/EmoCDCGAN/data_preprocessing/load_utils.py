@@ -27,3 +27,18 @@ def load_images_from_paths(paths, scale=True, resize=True, images_shape=(224,224
         images[i]=img
     return images
 
+def crop_image(image, x, y, width, height):
+    image=image[x:(x+width), y:(y+height)]
+    return image
+
+
+def load_AffectNet_labels(path_to_labels):
+    labels=pd.read_csv(path_to_labels, sep=',')
+    labels=labels[['subDirectory_filePath', 'face_x', 'face_y', 'face_width', 'face_height', 'expression', 'valence', 'arousal']]
+    possible_class_values=[i for i in range(7)]
+    labels=labels[np.isin(labels.expression, possible_class_values)]
+    return labels
+
+
+if __name__ == "__main__":
+    load_AffectNet_labels('D:\\Databases\\AffectNet\\AffectNet\\zip\\training.csv')

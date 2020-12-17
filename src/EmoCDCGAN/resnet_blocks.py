@@ -169,7 +169,9 @@ def create_generator_resnet_based(x_input, y_input, discriminator_output_map_sha
     tf.keras.utils.plot_model(model, show_shapes=True, to_file='generator_resnet_based_model.png')
     return model
 
-
+def build_adversarial_model_resnet_based(generator, discriminator, latent_space_input, labels_input):
+    model=tf.keras.Model(inputs=[latent_space_input, labels_input], outputs=[discriminator([generator([latent_space_input, labels_input]), labels_input])])
+    return model
 
 if __name__ == "__main__":
     input_x=tf.keras.layers.Input((224,224,3))

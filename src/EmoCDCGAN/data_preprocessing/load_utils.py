@@ -1,3 +1,4 @@
+import PIL
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -10,7 +11,7 @@ def load_image(path):
 
 def preprocess_image(img, scale=True, resize=True, needed_shape=(224,224,3), bgr=False):
     if resize:
-        img=np.array(Image.fromarray(img).resize(needed_shape))
+        img=np.array(Image.fromarray(img).resize(needed_shape[:2], resample=PIL.Image.BILINEAR))
     if bgr:
         img=img[...,::-1]
     if scale:
@@ -37,6 +38,7 @@ def load_AffectNet_labels(path_to_labels):
     labels=labels[['subDirectory_filePath', 'face_x', 'face_y', 'face_width', 'face_height', 'expression', 'valence', 'arousal']]
     possible_class_values=[i for i in range(7)]
     labels=labels[np.isin(labels.expression, possible_class_values)]
+    labels.subDirectory_filePath=labels.subDirectory_filePath.apply(lambda x:x.replace('/','\\'))
     return labels
 
 

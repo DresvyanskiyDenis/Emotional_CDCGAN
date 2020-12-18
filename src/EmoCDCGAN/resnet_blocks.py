@@ -133,8 +133,8 @@ def create_discriminator_resnet_based(x_input, y_input, image_shape):
     tf.keras.utils.plot_model(model, show_shapes=True, to_file='discriminator_resnet_based_model.png')
     return model
 
-def create_generator_resnet_based(x_input, y_input, discriminator_output_map_shape=(7,7,64)):
-    concat=tf.keras.layers.concatenate([x_input, y_input])
+def create_generator_resnet_based(input_x, input_y, discriminator_output_map_shape=(7,7,64)):
+    concat=tf.keras.layers.concatenate([input_x, input_y])
     x=tf.keras.layers.Flatten()(concat)
     x=tf.keras.layers.Dense(discriminator_output_map_shape[0]*
                             discriminator_output_map_shape[1]*

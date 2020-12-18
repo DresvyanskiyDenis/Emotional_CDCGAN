@@ -10,39 +10,16 @@ from src.EmoCDCGAN.resnet_blocks import create_generator_resnet_based, create_di
 
 
 def train():
-    path_to_images='D:\\Databases\\AffectNet\\AffectNet\\zip\\train\\Manually_Annotated_Images'
+    path_to_images='D:\\Databases\\AffectNet\\AffectNet\\zip\\Manually_Annotated_Images'
     path_to_labels='D:\\Databases\\AffectNet\\AffectNet\\zip\\training.csv'
     labels=load_AffectNet_labels(path_to_labels)
 
-    file_num=4567
-    test_image=load_image(os.path.join(path_to_images, labels.iloc[file_num,0]))
-    Image.fromarray(test_image).show()
-    test_image=crop_image(test_image, labels.iloc[file_num,1], labels.iloc[file_num,2], labels.iloc[file_num,3], labels.iloc[file_num,4])
-    Image.fromarray(test_image).show()
-
-    file_num=5685
-    test_image=load_image(os.path.join(path_to_images, labels.iloc[file_num,0]))
-    Image.fromarray(test_image).show()
-    test_image=crop_image(test_image, labels.iloc[file_num,1], labels.iloc[file_num,2], labels.iloc[file_num,3], labels.iloc[file_num,4])
-    Image.fromarray(test_image).show()
-
-    file_num=1234
-    test_image=load_image(os.path.join(path_to_images, labels.iloc[file_num,0]))
-    Image.fromarray(test_image).show()
-    test_image=crop_image(test_image, labels.iloc[file_num,1], labels.iloc[file_num,2], labels.iloc[file_num,3], labels.iloc[file_num,4])
-    Image.fromarray(test_image).show()
-
-    file_num=97654
-    test_image=load_image(os.path.join(path_to_images, labels.iloc[file_num,0]))
-    Image.fromarray(test_image).show()
-    test_image=crop_image(test_image, labels.iloc[file_num,1], labels.iloc[file_num,2], labels.iloc[file_num,3], labels.iloc[file_num,4])
-    Image.fromarray(test_image).show()
 
     # params
     latent_space_shape=200
     num_classes=7
     image_size=224
-    batch_size=int(16)
+    batch_size=int(2)
     train_steps=40000
     validate_each_step=100
 
@@ -59,13 +36,13 @@ def train():
     # discriminator model
     input_x_disc=tf.keras.layers.Input((image_size, image_size, 3))
     discriminator_model=create_discriminator_resnet_based(input_x_disc, input_y, image_size)
-    optimizer_disc=tf.keras.opttf.keras.optimizers.RMSprop(lr=0.0002, decay=6e-8)
+    optimizer_disc=tf.keras.optimizers.RMSprop(lr=0.0002, decay=6e-8)
     discriminator_model.compile(optimizer=optimizer_disc, loss='binary_crossentropy')
 
     # adversarial model
     discriminator_model.trainable=False
     adversarial_model=build_adversarial_model_resnet_based(generator_model, discriminator_model, input_x_gen, input_y)
-    optimizer_adv=tf.keras.opttf.keras.optimizers.RMSprop(lr=0.0002*0.5, decay=6e-8*0.5)
+    optimizer_adv=tf.keras.optimizers.RMSprop(lr=0.0002*0.5, decay=6e-8*0.5)
     adversarial_model.compile(optimizer=optimizer_adv, loss='binary_crossentropy')
 
     # summaries

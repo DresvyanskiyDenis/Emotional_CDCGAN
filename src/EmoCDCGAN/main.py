@@ -2,11 +2,10 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from PIL import Image
-
-from src.EmoCDCGAN.data_preprocessing.load_utils import load_AffectNet_labels, load_image, crop_image, preprocess_image
+from src.EmoCDCGAN.utils.data_preprocessing.load_utils import load_AffectNet_labels, load_image, crop_image, preprocess_image
 from src.EmoCDCGAN.resnet_blocks import create_generator_resnet_based, create_discriminator_resnet_based, \
     build_adversarial_model_resnet_based
+from src.EmoCDCGAN.utils.vizualization_utils import visualize_images
 
 
 def train():
@@ -96,8 +95,8 @@ def train():
         print('i:%i, Discriminator loss:%f, adversarial loss:%f' % (train_step, descriminator_loss, adversarial_loss))
 
         if train_step % validate_each_step == 0:
-            # TODO: make function to draw generated faces
-            pass
+            generated_images= generator_model.predict([noise_validation, labels_validation])
+            visualize_images(images=generated_images, labels=np.argmax(labels_validation, axis=-1), path_to_save='images', save_name='generated_images_step_%i.png'%train_step)
 
 if __name__ == "__main__":
     train()

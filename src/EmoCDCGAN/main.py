@@ -5,12 +5,13 @@ import tensorflow as tf
 from src.EmoCDCGAN.utils.data_preprocessing.load_utils import load_AffectNet_labels, load_image, crop_image, preprocess_image
 from src.EmoCDCGAN.resnet_blocks import create_generator_resnet_based, create_discriminator_resnet_based, \
     build_adversarial_model_resnet_based
+from src.EmoCDCGAN.utils.train_utils import train_n_mini_batches
 from src.EmoCDCGAN.utils.vizualization_utils import visualize_images
 
 
 def train():
-    path_to_images='D:\\Databases\\AffectNet\\AffectNet\\zip\\Manually_Annotated_Images'
-    path_to_labels='D:\\Databases\\AffectNet\\AffectNet\\zip\\training.csv'
+    path_to_images='E:\\Databases\\AffectNet\\AffectNet\\zip\\Manually_Annotated_Images'
+    path_to_labels='E:\\Databases\\AffectNet\\AffectNet\\zip\\training.csv'
     labels=load_AffectNet_labels(path_to_labels)
 
 
@@ -18,9 +19,9 @@ def train():
     latent_space_shape=200
     num_classes=7
     image_size=224
-    batch_size=int(2)
+    batch_size=int(32)
     train_steps=40000
-    validate_each_step=100
+    validate_each_step=50
 
     # data for validation generator
     noise_validation=np.random.uniform(-1., 1., (20, latent_space_shape,1))
@@ -35,13 +36,15 @@ def train():
     # discriminator model
     input_x_disc=tf.keras.layers.Input((image_size, image_size, 3))
     discriminator_model=create_discriminator_resnet_based(input_x_disc, input_y, image_size)
-    optimizer_disc=tf.keras.optimizers.RMSprop(lr=0.0002, decay=6e-8)
+    #optimizer_disc=tf.keras.optimizers.RMSprop(lr=0.0002, decay=6e-8)
+    optimizer_disc = tf.keras.optimizers.Adam(lr=0.0002, amsgrad=True)
     discriminator_model.compile(optimizer=optimizer_disc, loss='binary_crossentropy')
 
     # adversarial model
     discriminator_model.trainable=False
     adversarial_model=build_adversarial_model_resnet_based(generator_model, discriminator_model, input_x_gen, input_y)
-    optimizer_adv=tf.keras.optimizers.RMSprop(lr=0.0002*0.5, decay=6e-8*0.5)
+    #optimizer_adv=tf.keras.optimizers.RMSprop(lr=0.0002*0.5, decay=6e-8*0.5)
+    optimizer_adv=tf.keras.optimizers.Adam(lr=0.0001, amsgrad=True)
     adversarial_model.compile(optimizer=optimizer_adv, loss='binary_crossentropy')
 
     # summaries
@@ -59,7 +62,7 @@ def train():
         z = np.random.uniform(-1., 1., (int(batch_size ), latent_space_shape))
         indexes_to_choose = np.random.choice(num_classes, int(batch_size))
         fake_labels = np.eye(num_classes)[indexes_to_choose]
-        fake_images = generator_model.predict([z, fake_labels])
+        fake_images = generator_model.predict([z, fake_labels], batch_size=1)
 
         # take from real data batch_size random images
         indexes_to_choose = np.random.choice(labels.shape[0], int(batch_size))
@@ -79,7 +82,12 @@ def train():
         y_discriminator[:batch_size] = 0
 
         # train discriminator
-        descriminator_loss=discriminator_model.train_on_batch([train_discriminator_batch_images, train_discriminator_batch_labels],y_discriminator)
+        descriminator_loss=train_n_mini_batches(model=discriminator_model,
+                                                data=[train_discriminator_batch_images, train_discriminator_batch_labels],
+                                                labels=y_discriminator,
+                                                num_mini_batches=int(y_discriminator.shape[0]/2),
+                                                batch_size=2, loss=tf.keras.losses.binary_crossentropy)
+        #descriminator_loss=discriminator_model.train_on_batch([train_discriminator_batch_images, train_discriminator_batch_labels],y_discriminator)
 
         # train generator
         gen_batch_size = batch_size
@@ -89,14 +97,21 @@ def train():
         y_adversarial_network = np.ones((gen_batch_size,))
 
         # train adversarial model
-        adversarial_loss = adversarial_model.train_on_batch([z, fake_labels], y_adversarial_network)
+        adversarial_loss = train_n_mini_batches(model=adversarial_model,
+                                                  data=[z,
+                                                        fake_labels],
+                                                  labels=y_adversarial_network,
+                                                  num_mini_batches=int(y_adversarial_network.shape[0] / 2),
+                                                  batch_size=2, loss=tf.keras.losses.binary_crossentropy)
+
+        #adversarial_loss = adversarial_model.train_on_batch([z, fake_labels], y_adversarial_network)
 
         # print the losses
         print('i:%i, Discriminator loss:%f, adversarial loss:%f' % (train_step, descriminator_loss, adversarial_loss))
 
         if train_step % validate_each_step == 0:
-            generated_images= generator_model.predict([noise_validation, labels_validation])
-            visualize_images(images=generated_images, labels=np.argmax(labels_validation, axis=-1), path_to_save='images', save_name='generated_images_step_%i.png'%train_step)
+            generated_images= generator_model.predict([noise_validation, labels_validation], batch_size=1)
+            visualize_images(images=generated_images, labels=np.argmax(labels_validation.squeeze(), axis=-1), path_to_save='images', save_name='generated_images_step_%i.png'%train_step)
 
 if __name__ == "__main__":
     train()

@@ -116,6 +116,9 @@ def train():
         if train_step % validate_each_step == 0:
             generated_images= generator_model.predict([noise_validation, labels_validation], batch_size=1)
             visualize_images(images=generated_images, labels=np.argmax(labels_validation.squeeze(), axis=-1), path_to_save='images', save_name='generated_images_step_%i.png'%train_step)
+            generator_model.save_weights('generator.h5')
+            discriminator_model.save_weights('discriminator.h5')
+            adversarial_model.save_weights('adversarial.h5')
 
 if __name__ == "__main__":
     train()

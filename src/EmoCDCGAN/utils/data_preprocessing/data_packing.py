@@ -64,6 +64,11 @@ def pack_all_images_in_batches_AffectNet(labels: DataFrame, path_to_data:str,  b
         # clear RAM
         del data_to_pack
 
+def unpack_data_and_labels_npy(path_to_folder, filename):
+    data=np.load(os.path.join(path_to_folder, filename+'.npy'), allow_pickle=True)
+    labels=pd.read_csv(os.path.join(path_to_folder, filename+'.csv'))
+    return data, labels
+
 
 if __name__ == "__main__":
     path_to_images='E:\\Databases\\AffectNet\\AffectNet\\zip\\Manually_Annotated_Images'

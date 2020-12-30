@@ -43,4 +43,5 @@ def load_AffectNet_labels(path_to_labels):
 
 
 if __name__ == "__main__":
-    load_AffectNet_labels('D:\\Databases\\AffectNet\\AffectNet\\zip\\training.csv')
+    #load_AffectNet_labels('D:\\Databases\\AffectNet\\AffectNet\\zip\\training.csv')
+    pass

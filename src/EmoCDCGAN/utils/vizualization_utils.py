@@ -26,5 +26,5 @@ def visualize_images(images, labels, path_to_save='images', save_name=None):
         plt.imshow(image)
         plt.axis('off')
     plt.savefig(filename_to_save)
-    plt.show()
+    #plt.show()
 

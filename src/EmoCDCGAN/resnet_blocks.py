@@ -20,7 +20,7 @@ def resnet_conv_block(input, num_filters, stride, group_norm_groups=32):
 
     # shortcut connection, but with 1x1 conv to decrease the feature map
     shortcut = tf.keras.layers.Conv2D(filters=f2, kernel_size=1, activation=None, strides=stride, padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(input)
-    shortcut = tfa.layers.GroupNormalization(groups=group_norm_groups)()(shortcut)
+    shortcut = tfa.layers.GroupNormalization(groups=group_norm_groups)(shortcut)
 
     # connection
     add=tf.keras.layers.Add()([shortcut, x])
@@ -109,18 +109,18 @@ def create_discriminator_resnet_based(x_input, y_input, image_shape, group_norm_
 
     x = resnet_conv_block(input=concat, num_filters=(64, 256), stride=(2, 2), group_norm_groups=group_norm_groups)
     x = resnet_identity(input=x, num_filters=(64, 256), group_norm_groups=group_norm_groups)
-    x = resnet_identity(input=x, num_filters=(64, 256), group_norm_groups=group_norm_groups)
+    #x = resnet_identity(input=x, num_filters=(64, 256), group_norm_groups=group_norm_groups)
 
     x = resnet_conv_block(input=x, num_filters=(128, 512), stride=(2, 2), group_norm_groups=group_norm_groups)
-    x = resnet_identity(input=x, num_filters=(128, 512), group_norm_groups=group_norm_groups)
-    x = resnet_identity(input=x, num_filters=(128, 512), group_norm_groups=group_norm_groups)
+    #x = resnet_identity(input=x, num_filters=(128, 512), group_norm_groups=group_norm_groups)
+    #x = resnet_identity(input=x, num_filters=(128, 512), group_norm_groups=group_norm_groups)
 
     x = resnet_conv_block(input=x, num_filters=(256, 1024), stride=(2, 2), group_norm_groups=group_norm_groups)
-    x = resnet_identity(input=x, num_filters=(256, 1024), group_norm_groups=group_norm_groups)
-    x = resnet_identity(input=x, num_filters=(256, 1024), group_norm_groups=group_norm_groups)
+    #x = resnet_identity(input=x, num_filters=(256, 1024), group_norm_groups=group_norm_groups)
+    #x = resnet_identity(input=x, num_filters=(256, 1024), group_norm_groups=group_norm_groups)
 
-    x = resnet_conv_block(input=x, num_filters=(512, 1024), stride=(2, 2), group_norm_groups=group_norm_groups)
-    x = resnet_identity(input=x, num_filters=(512, 1024), group_norm_groups=group_norm_groups)
+    #x = resnet_conv_block(input=x, num_filters=(512, 1024), stride=(2, 2), group_norm_groups=group_norm_groups)
+    #x = resnet_identity(input=x, num_filters=(512, 1024), group_norm_groups=group_norm_groups)
 
     x = tf.keras.layers.Conv2D(filters=64, kernel_size=7, activation=None, strides=(2, 2), padding='same')(x)
     x = tfa.layers.GroupNormalization(groups=group_norm_groups)(x)
@@ -133,7 +133,7 @@ def create_discriminator_resnet_based(x_input, y_input, image_shape, group_norm_
     tf.keras.utils.plot_model(model, show_shapes=True, to_file='discriminator_resnet_based_model.png')
     return model
 
-def create_generator_resnet_based(input_x, input_y, discriminator_output_map_shape=(7,7,64), group_norm_groups=32):
+def create_generator_resnet_based(input_x, input_y, discriminator_output_map_shape=(14,14,64), group_norm_groups=32):
     concat=tf.keras.layers.concatenate([input_x, input_y])
     x=tf.keras.layers.Flatten()(concat)
     x=tf.keras.layers.Dense(discriminator_output_map_shape[0]*
@@ -144,26 +144,26 @@ def create_generator_resnet_based(input_x, input_y, discriminator_output_map_sha
     x=tf.keras.layers.ReLU()(x)
 
     x = resnet_conv_transpose(input=x, num_filters=(64, 256), stride=(2, 2), group_norm_groups=group_norm_groups)
-    x = resnet_identity_transponse(input=x, num_filters=(64, 256), group_norm_groups=group_norm_groups)
+    #x = resnet_identity_transponse(input=x, num_filters=(64, 256), group_norm_groups=group_norm_groups)
     x = resnet_identity_transponse(input=x, num_filters=(64, 256), group_norm_groups=group_norm_groups)
 
     x = resnet_conv_transpose(input=x, num_filters=(128, 512), stride=(2, 2), group_norm_groups=group_norm_groups)
-    x = resnet_identity_transponse(input=x, num_filters=(128, 512), group_norm_groups=group_norm_groups)
-    x = resnet_identity_transponse(input=x, num_filters=(128, 512), group_norm_groups=group_norm_groups)
+    #x = resnet_identity_transponse(input=x, num_filters=(128, 512), group_norm_groups=group_norm_groups)
+    #x = resnet_identity_transponse(input=x, num_filters=(128, 512), group_norm_groups=group_norm_groups)
 
     x = resnet_conv_transpose(input=x, num_filters=(256, 1024), stride=(2, 2), group_norm_groups=group_norm_groups)
-    x = resnet_identity_transponse(input=x, num_filters=(256, 1024), group_norm_groups=group_norm_groups)
-    x = resnet_identity_transponse(input=x, num_filters=(256, 1024), group_norm_groups=group_norm_groups)
+    #x = resnet_identity_transponse(input=x, num_filters=(256, 1024), group_norm_groups=group_norm_groups)
+    #x = resnet_identity_transponse(input=x, num_filters=(256, 1024), group_norm_groups=group_norm_groups)
 
-    x = resnet_conv_transpose(input=x, num_filters=(512, 1024), stride=(2, 2), group_norm_groups=group_norm_groups)
-    x = resnet_identity_transponse(input=x, num_filters=(512, 1024), group_norm_groups=group_norm_groups)
+    #x = resnet_conv_transpose(input=x, num_filters=(512, 1024), stride=(2, 2), group_norm_groups=group_norm_groups)
+    #x = resnet_identity_transponse(input=x, num_filters=(512, 1024), group_norm_groups=group_norm_groups)
 
-    x = tf.keras.layers.Conv2DTranspose(filters=128, kernel_size=7, activation=None, strides=(2, 2), padding='same')(x)
+    x = tf.keras.layers.Conv2DTranspose(filters=64, kernel_size=7, activation=None, strides=(2, 2), padding='same')(x)
     x = tfa.layers.GroupNormalization(groups=group_norm_groups)(x)
     x = tf.keras.layers.ReLU()(x)
 
     x = tf.keras.layers.Conv2DTranspose(filters=3, kernel_size=7, activation=None, strides=(1,1), padding='same')(x)
-    x = tf.keras.layers.Activation(tf.keras.activations.tanh)(x)
+    x = tf.keras.layers.Activation(tf.keras.activations.sigmoid)(x)
 
     model=tf.keras.Model(inputs=[input_x, input_y], outputs=x)
     tf.keras.utils.plot_model(model, show_shapes=True, to_file='generator_resnet_based_model.png')

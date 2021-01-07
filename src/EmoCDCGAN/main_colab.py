@@ -7,7 +7,7 @@ from src.EmoCDCGAN.resnet_blocks import create_generator_resnet_based, create_di
     build_adversarial_model_resnet_based
 from src.EmoCDCGAN.utils.data_preprocessing.data_packing import unpack_data_and_labels_npy
 from src.EmoCDCGAN.utils.data_preprocessing.preprocess_utils import preprocess_image, preprocess_batch_images, \
-    shuffle_ndarrays
+    shuffle_ndarrays, add_noise_in_labels
 from src.EmoCDCGAN.utils.train_utils import train_n_mini_batches
 from src.EmoCDCGAN.utils.vizualization_utils import visualize_images
 
@@ -87,6 +87,7 @@ def train():
         train_discriminator_batch_labels = np.concatenate([fake_labels, real_labels], axis=0)
         y_discriminator = np.ones((batch_size*2,))
         y_discriminator[:batch_size] = 0
+        y_discriminator=add_noise_in_labels(y_discriminator)
 
         # shuffle
         #train_discriminator_batch_images, \
@@ -111,6 +112,7 @@ def train():
         indexes_to_choose = np.random.choice(num_classes, gen_batch_size)
         fake_labels = np.eye(num_classes)[indexes_to_choose]
         y_adversarial_network = np.ones((gen_batch_size,))
+        y_adversarial_network = add_noise_in_labels(y_adversarial_network)
 
         # train adversarial model
         adversarial_loss = train_n_mini_batches(model=adversarial_model,

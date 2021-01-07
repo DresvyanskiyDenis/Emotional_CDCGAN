@@ -25,7 +25,7 @@ def train():
     validate_each_step=25
 
     # data for validation generator
-    noise_validation=np.random.uniform(-1., 1., (20, latent_space_shape,1))
+    noise_validation=np.random.normal((20, latent_space_shape,1))
     indexes_to_choose = np.random.choice(num_classes, 20)
     labels_validation = np.eye(num_classes)[indexes_to_choose][..., np.newaxis]
 

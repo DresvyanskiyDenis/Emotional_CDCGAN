@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from src.EmoCDCGAN.utils.data_preprocessing.load_utils import load_AffectNet_labels, load_image, crop_image, \
+from src.EmoCDCGAN.utils.data_preprocessing.preprocess_utils import load_AffectNet_labels, load_image, crop_image, \
     preprocess_image
 
 

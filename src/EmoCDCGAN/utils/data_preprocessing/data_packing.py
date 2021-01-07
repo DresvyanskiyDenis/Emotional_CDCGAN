@@ -5,7 +5,7 @@ import os
 from numpy.core.multiarray import ndarray
 from pandas import DataFrame
 
-from src.EmoCDCGAN.utils.data_preprocessing.load_utils import load_image, preprocess_image, load_AffectNet_labels
+from src.EmoCDCGAN.utils.data_preprocessing.preprocess_utils import load_image, preprocess_image, load_AffectNet_labels
 
 
 def pack_and_save_batch_images_in_npy(images: ndarray, labels: DataFrame, path_to_save:str, filename:str):

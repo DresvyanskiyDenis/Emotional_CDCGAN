@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 import tensorflow as tf
+from numpy.core.multiarray import ndarray
+
 
 def load_image(path):
     img=Image.open(path)
@@ -15,16 +17,20 @@ def preprocess_image(img, scale=True, resize=True, needed_shape=(224,224,3), bgr
     if bgr:
         img=img[...,::-1]
     if scale:
-        img=img/255.
+        img=(img/255.)*2.-1
     return img
 
-def load_images_from_paths(paths, scale=True, resize=True, images_shape=(224,224,3), bgr=False, preprocess_mode='MobileNetv2'):
+def preprocess_batch_images(images:ndarray, scale:bool=True, resize:bool=True, images_shape:tuple=(224,224,3), bgr:bool=False):
+    for i in range(images.shape[0]):
+        images[i]=preprocess_image(images[i], scale, resize, images_shape, bgr)
+    images=images.astype('float32')
+    return images
+
+def load_images_from_paths(paths, scale=True, resize=True, images_shape=(224,224,3), bgr=False):
     images=np.zeros((len(paths),)+images_shape)
     for i in range(len(paths)):
         img=load_image(paths[i])
         img=preprocess_image(img, scale, resize, images_shape, bgr)
-        if preprocess_mode=='MobileNetv2':
-            img=tf.keras.applications.mobilenet_v2.preprocess_input(img)
         images[i]=img
     return images
 
@@ -42,6 +48,19 @@ def load_AffectNet_labels(path_to_labels):
     return labels
 
 
+def shuffle_ndarrays(ndarrays:list):
+    permutation=np.random.permutation(ndarrays[0].shape[0])
+    for i in range(len(ndarrays)):
+        ndarrays[i]=ndarrays[i][permutation]
+    return ndarrays
+
+def add_noise_in_labels(labels:ndarray):
+    for i in range(labels.shape[0]):
+        if labels[i]==0.:
+            labels[i]=np.random.uniform(0.,0.3)
+        elif labels[i]==1.:
+            labels[i]=np.random.uniform(0.7, 1.2)
+    return labels
 if __name__ == "__main__":
     #load_AffectNet_labels('D:\\Databases\\AffectNet\\AffectNet\\zip\\training.csv')
     pass

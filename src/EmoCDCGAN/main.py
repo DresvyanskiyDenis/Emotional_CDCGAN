@@ -2,7 +2,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from src.EmoCDCGAN.utils.data_preprocessing.load_utils import load_AffectNet_labels, load_image, crop_image, preprocess_image
+from src.EmoCDCGAN.utils.data_preprocessing.preprocess_utils import load_AffectNet_labels, load_image, crop_image, preprocess_image
 from src.EmoCDCGAN.resnet_blocks import create_generator_resnet_based, create_discriminator_resnet_based, \
     build_adversarial_model_resnet_based
 from src.EmoCDCGAN.utils.train_utils import train_n_mini_batches

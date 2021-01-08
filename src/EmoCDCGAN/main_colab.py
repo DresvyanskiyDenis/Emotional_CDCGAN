@@ -16,7 +16,7 @@ def train():
     path_to_data='E:\\Databases\\AffectNet\\AffectNet\\Batches'
 
     # params
-    latent_space_shape=200
+    latent_space_shape=100
     num_classes=7
     image_size=224
     batch_size=int(64)
@@ -99,7 +99,6 @@ def train():
                                                 data=[train_discriminator_batch_images.astype('float32')
                                                 , train_discriminator_batch_labels],
                                                 labels=y_discriminator,
-                                                num_mini_batches=int(y_discriminator.shape[0]),
                                                 batch_size=8, loss=tf.keras.losses.binary_crossentropy)
         #descriminator_loss=discriminator_model.train_on_batch([train_discriminator_batch_images[start:end],
         #                          train_discriminator_batch_labels[start:end]],
@@ -119,7 +118,6 @@ def train():
                                                   data=[z.astype('float32'),
                                                         fake_labels],
                                                   labels=y_adversarial_network,
-                                                  num_mini_batches=int(y_adversarial_network.shape[0]),
                                                   batch_size=8, loss=tf.keras.losses.binary_crossentropy)
 
         #adversarial_loss = adversarial_model.train_on_batch([z, fake_labels], y_adversarial_network)

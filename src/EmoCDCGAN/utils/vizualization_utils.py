@@ -12,6 +12,7 @@ def visualize_images(images, labels, path_to_save='images', save_name=None):
         os.mkdir(path_to_save)
     filename_to_save = os.path.join(path_to_save, save_name)
     #plt.figure(figsize=(2.2, 2.2))
+    images=(images+1.)/2.
     num_images = images.shape[0]
     image_size = images.shape[1]
     fig = plt.figure(figsize=(13, 9))

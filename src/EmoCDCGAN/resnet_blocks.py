@@ -137,10 +137,9 @@ def create_discriminator_resnet_based(x_input, y_input, image_shape, group_norm_
     x = tf.keras.layers.Conv2D(filters=64, kernel_size=7, activation=None, strides=(2, 2), padding='same')(x)
     x = tfa.layers.GroupNormalization(groups=group_norm_groups)(x)
     x = tf.keras.layers.LeakyReLU(0.2)(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
 
     x=tf.keras.layers.GlobalAveragePooling2D()(x)
-    x=tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    #x=tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x=tf.keras.layers.Dense(1, activation='sigmoid')(x)
     model=tf.keras.Model(inputs=[x_input, y_input], outputs=x, name='discriminator')
     tf.keras.utils.plot_model(model, show_shapes=True, to_file='discriminator_resnet_based_model.png')

@@ -21,10 +21,14 @@ def preprocess_image(img, scale=True, resize=True, needed_shape=(224,224,3), bgr
     return img
 
 def preprocess_batch_images(images:ndarray, scale:bool=True, resize:bool=True, images_shape:tuple=(224,224,3), bgr:bool=False):
+    if resize:
+        new_images=np.zeros(shape=(images.shape[0],)+images_shape)
+    else:
+        new_images=images
     for i in range(images.shape[0]):
-        images[i]=preprocess_image(images[i], scale, resize, images_shape, bgr)
-    images=images.astype('float32')
-    return images
+        new_images[i]=preprocess_image(images[i], scale, resize, images_shape, bgr)
+    new_images=new_images.astype('float32')
+    return new_images
 
 def load_images_from_paths(paths, scale=True, resize=True, images_shape=(224,224,3), bgr=False):
     images=np.zeros((len(paths),)+images_shape)

@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import tensorflow_addons as tfa
 
-def create_simple_generator(input_x, input_y, discriminator_output_map_shape=(2,2,256), dropout_rate=0.2):
+def create_simple_generator(input_x, input_y, discriminator_output_map_shape=(1,1,256), dropout_rate=0.2):
     alfa_relu=0.2
     concat = tf.keras.layers.concatenate([input_x, input_y])
     x = tf.keras.layers.Flatten()(concat)
@@ -14,12 +14,12 @@ def create_simple_generator(input_x, input_y, discriminator_output_map_shape=(2,
     x = tf.keras.layers.LeakyReLU(0.2)(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
 
-    x=tf.keras.layers.Conv2DTranspose(filters=32, kernel_size=5, use_bias=False, activation=None, strides=(2,2), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x=tf.keras.layers.Conv2DTranspose(filters=256, kernel_size=5, use_bias=False, activation=None, strides=(2,2), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alfa_relu)(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
 
-    x=tf.keras.layers.Conv2DTranspose(filters=64, kernel_size=5, use_bias=False, activation=None, strides=(2,2), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x=tf.keras.layers.Conv2DTranspose(filters=256, kernel_size=5, use_bias=False, activation=None, strides=(2,2), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alfa_relu)(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
@@ -29,12 +29,12 @@ def create_simple_generator(input_x, input_y, discriminator_output_map_shape=(2,
     x = tf.keras.layers.LeakyReLU(alfa_relu)(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
 
-    x=tf.keras.layers.Conv2DTranspose(filters=256, kernel_size=4, use_bias=False, activation=None, strides=(2,2), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x=tf.keras.layers.Conv2DTranspose(filters=64, kernel_size=4, use_bias=False, activation=None, strides=(2,2), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alfa_relu)(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)
 
-    x=tf.keras.layers.Conv2DTranspose(filters=256, kernel_size=3, use_bias=False, activation=None, strides=(2,2), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
+    x=tf.keras.layers.Conv2DTranspose(filters=32, kernel_size=3, use_bias=False, activation=None, strides=(2,2), padding='same', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU(alfa_relu)(x)
     x = tf.keras.layers.Dropout(dropout_rate)(x)

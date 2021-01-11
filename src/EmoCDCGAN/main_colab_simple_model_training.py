@@ -12,6 +12,11 @@ from src.EmoCDCGAN.utils.data_preprocessing.preprocess_utils import preprocess_i
 from src.EmoCDCGAN.utils.train_utils import train_n_mini_batches
 from src.EmoCDCGAN.utils.vizualization_utils import visualize_images
 
+def binary_accuracy(y_true, y_pred):
+    '''Calculates the mean accuracy rate across all predictions for binary
+    classification problems.
+    '''
+    return tf.keras.backend.mean(tf.keras.backend.equal(tf.keras.backend.round(y_true), tf.keras.backend.round(y_pred)))
 
 def train():
     path_to_data='D:\\Databases\\AffectNet\\AffectNet\\Batches'
@@ -19,9 +24,9 @@ def train():
     # params
     latent_space_shape=128
     num_classes=7
-    image_size=64
+    image_size=32
     batch_size=int(64)
-    mini_batch_size=16
+    mini_batch_size=64
     train_steps=40000
     validate_each_step=1
 
@@ -45,23 +50,24 @@ def train():
     input_x_disc=tf.keras.layers.Input((image_size, image_size, 3))
     discriminator_model=create_simple_discriminator(x_input=input_x_disc, num_classes=num_classes, dropout_rate=0.2)
     #optimizer_disc=tf.keras.optimizers.RMSprop(lr=0.0001, decay=6e-8)
-    optimizer_disc = tfa.optimizers.AdamW(learning_rate=0.0002, weight_decay=10e-6)
+    optimizer_disc = tf.optimizers.RMSprop(learning_rate=0.0002, decay=6e-8)
     #discriminator_model.load_weights('saved_models/discriminator.h5')
     discriminator_model.compile(optimizer=optimizer_disc, loss={'output_fake_real':'binary_crossentropy',
                                                                 'output_class_num':'categorical_crossentropy'},
                                 loss_weights={'output_fake_real': 1,
                                               'output_class_num': 1},
-                                metrics={'output_fake_real':'acc'})
+                                metrics={'output_fake_real':binary_accuracy})
+    discriminator_model.summary()
 
     # adversarial model
     discriminator_model.trainable=False
     adversarial_model=create_simple_adversarial_network(generator_model, discriminator_model, input_x_gen, input_y)
     #optimizer_adv=tf.keras.optimizers.RMSprop(lr=0.0001, decay=6e-8)
     #optimizer_adv=tf.keras.optimizers.Adam(lr=0.0005, amsgrad=True)
-    optimizer_adv=tf.keras.optimizers.SGD(learning_rate=0.001)
+    optimizer_adv=tf.keras.optimizers.RMSprop(learning_rate=0.0001, decay=3e-8)
     adversarial_model.compile(optimizer=optimizer_adv, loss={'discriminator':'binary_crossentropy',
                                                             'discriminator_1':'categorical_crossentropy'},
-                              metrics={'discriminator':'acc'})
+                              metrics={'discriminator':binary_accuracy})
     #discriminator_model.trainable = True
 
     # summaries
@@ -86,7 +92,7 @@ def train():
         real_images, real_labels= unpack_data_and_labels_npy(path_to_folder=path_to_data,
                                                              filename=batches_filenames[rand_num])
         # preprocessing
-        real_images=preprocess_batch_images(real_images, scale=True, resize=True, images_shape=(64,64,3), bgr=False)
+        real_images=preprocess_batch_images(real_images, scale=True, resize=True, images_shape=(image_size,image_size,3), bgr=False)
         real_labels=real_labels.expression.values[indexes_to_choose]
         real_labels=tf.keras.utils.to_categorical(real_labels, num_classes=num_classes)
 

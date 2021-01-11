@@ -44,7 +44,7 @@ def train():
     input_x_disc=tf.keras.layers.Input((image_size, image_size, 3))
     discriminator_model=create_discriminator_resnet_based(input_x_disc, input_y, image_size)
     #optimizer_disc=tf.keras.optimizers.RMSprop(lr=0.0001, decay=6e-8)
-    optimizer_disc = tfa.optimizers.AdamW(learning_rate=0.001, weight_decay=10e-4)
+    optimizer_disc = tf.optimizers.RMSprop(learning_rate=0.0002, weight_decay=6e-8)
     #discriminator_model.load_weights('saved_models/discriminator.h5')
     discriminator_model.compile(optimizer=optimizer_disc, loss='binary_crossentropy')
 
@@ -53,7 +53,7 @@ def train():
     adversarial_model=build_adversarial_model_resnet_based(generator_model, discriminator_model, input_x_gen, input_y)
     #optimizer_adv=tf.keras.optimizers.RMSprop(lr=0.0001, decay=6e-8)
     #optimizer_adv=tf.keras.optimizers.Adam(lr=0.0005, amsgrad=True)
-    optimizer_adv=tfa.optimizers.AdamW(learning_rate=0.001, weight_decay=10e-4)
+    optimizer_adv=tf.optimizers.RMSprop(learning_rate=0.0001, weight_decay=3e-8)
     adversarial_model.compile(optimizer=optimizer_adv, loss='binary_crossentropy')
 
     # summaries

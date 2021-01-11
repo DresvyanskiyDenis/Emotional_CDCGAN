@@ -28,7 +28,7 @@ def train():
     batch_size=int(64)
     mini_batch_size=64
     train_steps=40000
-    validate_each_step=1
+    validate_each_step=100
 
     # data for validation generator
     noise_validation=np.random.normal(size=(20, latent_space_shape))
@@ -109,13 +109,18 @@ def train():
         #y_discriminator = shuffle_ndarrays([train_discriminator_batch_images, train_discriminator_batch_labels, y_discriminator])
 
         # train discriminator
-        discriminator_loss=0
-        for batch_step in range(train_discriminator_batch_images.shape[0]//mini_batch_size):
-            start=batch_step*mini_batch_size
-            end=(batch_step+1)*mini_batch_size
-            discriminator_loss+=discriminator_model.train_on_batch(x=train_discriminator_batch_images.astype('float32')[start:end],
-                                               y=[y_discriminator[start:end], train_discriminator_labels_images[start:end]])[0]
-        discriminator_loss/=float(train_discriminator_batch_images.shape[0]//mini_batch_size)
+        discriminator_loss = 0
+        discriminator_acc = 0
+        for batch_step in range(train_discriminator_batch_images.shape[0] // mini_batch_size):
+            start = batch_step * mini_batch_size
+            end = (batch_step + 1) * mini_batch_size
+            loss = discriminator_model.train_on_batch(x=train_discriminator_batch_images.astype('float32')[start:end],
+                                                      y=[y_discriminator[start:end],
+                                                         train_discriminator_labels_images[start:end]])
+            discriminator_loss += loss[0]
+            discriminator_acc += loss[-1]
+        discriminator_loss /= float(train_discriminator_batch_images.shape[0] // mini_batch_size)
+        discriminator_acc /= float(train_discriminator_batch_images.shape[0] // mini_batch_size)
 
         # train generator
         gen_batch_size = batch_size*2

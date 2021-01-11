@@ -61,9 +61,9 @@ def shuffle_ndarrays(ndarrays:list):
 def add_noise_in_labels(labels:ndarray):
     for i in range(labels.shape[0]):
         if labels[i]==0.:
-            labels[i]=np.random.uniform(0.,0.3)
+            labels[i]=np.random.uniform(0.,0.2)
         elif labels[i]==1.:
-            labels[i]=np.random.uniform(0.7, 1.2)
+            labels[i]=np.random.uniform(0.8, 1.0)
     return labels
 if __name__ == "__main__":
     #load_AffectNet_labels('D:\\Databases\\AffectNet\\AffectNet\\zip\\training.csv')

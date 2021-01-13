@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
 
+from src.EmoCDCGAN.gan import ACGAN
 from src.EmoCDCGAN.models import create_simple_generator, create_simple_discriminator, create_simple_adversarial_network
 from src.EmoCDCGAN.resnet_blocks import create_generator_resnet_based, create_discriminator_resnet_based, \
     build_adversarial_model_resnet_based
@@ -20,15 +21,21 @@ def binary_accuracy(y_true, y_pred):
 
 def train():
     path_to_data='D:\\Databases\\AffectNet\\AffectNet\\Batches'
+    path_to_save_models='saved_models'
+    if not os.path.exists(path_to_save_models):
+        os.mkdir(path_to_save_models)
 
     # params
     latent_space_shape=128
     num_classes=7
-    image_size=32
+    image_size=128
     batch_size=int(64)
     mini_batch_size=64
     train_steps=40000
     validate_each_step=100
+
+    # crate class ACGAN
+    acgan=ACGAN()
 
     # data for validation generator
     noise_validation=np.random.normal(size=(20, latent_space_shape))
@@ -41,15 +48,14 @@ def train():
     batches_filenames=np.array(list(set(batches_filenames)))
 
     # generator model
-    input_x_gen=tf.keras.layers.Input((latent_space_shape,))
-    input_y=tf.keras.layers.Input((num_classes,))
-    generator_model=create_simple_generator(input_x_gen, input_y)
+    z_input_shape=(latent_space_shape,)
+    c_input_shape=(num_classes,)
+    generator_model=acgan.create_generator(z_input_shape, c_input_shape, dropout_rate=0.2)
     #generator_model.load_weights('saved_models/generator.h5')
 
     # discriminator model
-    input_x_disc=tf.keras.layers.Input((image_size, image_size, 3))
-    discriminator_model=create_simple_discriminator(x_input=input_x_disc, num_classes=num_classes, dropout_rate=0.2)
-    #optimizer_disc=tf.keras.optimizers.RMSprop(lr=0.0001, decay=6e-8)
+    input_shape_x_disc=(image_size, image_size, 3)
+    discriminator_model=acgan.create_discriminator(x_input_shape=input_shape_x_disc, num_classes=num_classes, dropout_rate=0.2)
     optimizer_disc = tf.optimizers.RMSprop(learning_rate=0.0002, decay=6e-8)
     #discriminator_model.load_weights('saved_models/discriminator.h5')
     discriminator_model.compile(optimizer=optimizer_disc, loss={'output_fake_real':'binary_crossentropy',
@@ -61,22 +67,15 @@ def train():
 
     # adversarial model
     discriminator_model.trainable=False
-    adversarial_model=create_simple_adversarial_network(generator_model, discriminator_model, input_x_gen, input_y)
-    #optimizer_adv=tf.keras.optimizers.RMSprop(lr=0.0001, decay=6e-8)
-    #optimizer_adv=tf.keras.optimizers.Adam(lr=0.0005, amsgrad=True)
+    adversarial_model=acgan.create_adversarial_network(generator_model, discriminator_model)
     optimizer_adv=tf.keras.optimizers.RMSprop(learning_rate=0.0001, decay=3e-8)
     adversarial_model.compile(optimizer=optimizer_adv, loss={'discriminator':'binary_crossentropy',
                                                             'discriminator_1':'categorical_crossentropy'},
                               metrics={'discriminator':binary_accuracy})
-    #discriminator_model.trainable = True
 
     # summaries
-    generator_model.summary()
-    tf.keras.utils.plot_model(generator_model, show_shapes=True, to_file="model_gen.png")
-    discriminator_model.summary()
-    tf.keras.utils.plot_model(discriminator_model, show_shapes=True, to_file="model_disc.png")
-    adversarial_model.summary()
-    tf.keras.utils.plot_model(adversarial_model, show_shapes=True, to_file="model_advers.png")
+    acgan.print_summaries()
+    acgan.create_model_images(path_to_save_models)
 
     # train process
     for train_step in range(0,train_steps,1):
@@ -103,10 +102,6 @@ def train():
         y_discriminator[:batch_size] = 0
         y_discriminator=add_noise_in_labels(y_discriminator)
 
-        # shuffle
-        #train_discriminator_batch_images, \
-        #train_discriminator_batch_labels, \
-        #y_discriminator = shuffle_ndarrays([train_discriminator_batch_images, train_discriminator_batch_labels, y_discriminator])
 
         # train discriminator
         discriminator_loss = 0
@@ -140,18 +135,13 @@ def train():
                                                y=[y_adversarial_network[start:end], fake_labels[start:end]])[0]
         adversarial_loss/=float(z.shape[0]//mini_batch_size)
 
-
-        #adversarial_loss = adversarial_model.train_on_batch([z, fake_labels], y_adversarial_network)
-
         # print the losses
         print('i:%i, Discriminator loss:%f, adversarial loss:%f' % (train_step, discriminator_loss, adversarial_loss))
 
         if train_step % validate_each_step == 0:
             generated_images= generator_model.predict([noise_validation, labels_validation], batch_size=1)
             visualize_images(images=generated_images, labels=np.argmax(labels_validation.squeeze(), axis=-1), path_to_save='images', save_name='generated_images_step_%i.png'%train_step)
-            generator_model.save_weights('generator.h5')
-            discriminator_model.save_weights('discriminator.h5')
-            adversarial_model.save_weights('adversarial.h5')
+            acgan.save_weights_models(path_to_save_models)
 
 
 

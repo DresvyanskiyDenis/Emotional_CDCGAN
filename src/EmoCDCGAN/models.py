@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import tensorflow_addons as tfa
 
-def create_simple_generator(input_x, input_y, discriminator_output_map_shape=(1,1,256), dropout_rate=0.2):
+def create_simple_generator(input_x, input_y, discriminator_output_map_shape=(4,4,256), dropout_rate=0.2):
     alfa_relu=0.2
     concat = tf.keras.layers.concatenate([input_x, input_y])
     x = tf.keras.layers.Flatten()(concat)

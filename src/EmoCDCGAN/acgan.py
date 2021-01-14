@@ -1,5 +1,8 @@
 import tensorflow as tf
 import os
+
+from numpy.core.multiarray import ndarray
+
 from src.EmoCDCGAN.models import create_simple_generator, create_simple_discriminator
 import numpy as np
 
@@ -30,7 +33,7 @@ class ACGAN():
         self.generator=generator_model
         return generator_model
 
-    def create_discriminator(self, dropout_rate=0.2):
+    def create_discriminator(self, dropout_rate:float=0.2):
         x_input_shape=self.image_size
         input_x_disc = tf.keras.layers.Input(x_input_shape)
         discriminator_model = create_simple_discriminator(x_input=input_x_disc, num_classes=self.num_classes,
@@ -60,7 +63,7 @@ class ACGAN():
         self.discriminator.save_weights(os.path.join(output_path,'discriminator.h5'))
         self.adversarial.save_weights(os.path.join(output_path,'adversarial.h5'))
 
-    def train_discriminator_one_step(self, batch_size, mini_batch_size, real_images, real_labels):
+    def train_discriminator_one_step(self, batch_size:int, mini_batch_size:int, real_images:ndarray, real_labels:ndarray):
         # train discriminator
         # generate random images from generator
         z = np.random.normal(size=(int(batch_size), self.latent_space_shape))
@@ -90,7 +93,7 @@ class ACGAN():
         discriminator_acc /= float(train_discriminator_batch_images.shape[0] // mini_batch_size)
         return [discriminator_loss, discriminator_acc]
 
-    def train_generator_one_step(self, batch_size, mini_batch_size):
+    def train_generator_one_step(self, batch_size:int, mini_batch_size:int):
         # train generator
         z = np.random.normal(size=(int(batch_size), self.latent_space_shape))
         indexes_to_choose = np.random.choice(self.num_classes, batch_size)

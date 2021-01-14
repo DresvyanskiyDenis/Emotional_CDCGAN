@@ -42,8 +42,6 @@ def create_simple_generator(input_x, input_y, discriminator_output_map_shape=(4,
     x = tf.keras.layers.Conv2DTranspose(filters=3, kernel_size=1, activation='tanh', strides=(1,1), padding='same')(x)
 
     model = tf.keras.Model(inputs=[input_x, input_y], outputs=x)
-    #tf.keras.utils.plot_model(model, show_shapes=True, to_file='generator_simple_model.png')
-    #model.summary()
     return model
 
 
@@ -81,8 +79,6 @@ def create_simple_discriminator(x_input, num_classes, dropout_rate=0.2):
     output_2 = tf.keras.layers.Dense(num_classes, activation='softmax', name='output_class_num')(x)
 
     model = tf.keras.Model(inputs=x_input, outputs=[output_1, output_2], name='discriminator')
-    #tf.keras.utils.plot_model(model, show_shapes=True, to_file='discriminator_simple_model.png')
-    #model.summary()
     return model
 
 
@@ -90,8 +86,6 @@ def create_simple_adversarial_network(generator, discriminator, latent_space_inp
     generator_output=generator([latent_space_input, labels_input])
     discriminator_outputs=discriminator(generator_output)
     model=tf.keras.Model(inputs=[latent_space_input, labels_input], outputs=discriminator_outputs)
-    #tf.keras.utils.plot_model(model, show_shapes=True, to_file='adversarial_simple_model.png')
-    #model.summary()
     return model
 
 if __name__ == "__main__":

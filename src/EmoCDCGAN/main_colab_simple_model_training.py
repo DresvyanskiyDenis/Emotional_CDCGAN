@@ -77,7 +77,7 @@ def train():
         real_images, real_labels= unpack_data_and_labels_npy(path_to_folder=path_to_data,
                                                              filename=batches_filenames[rand_num])
         # preprocessing of real labels/images
-        real_images=preprocess_batch_images(real_images, scale=True, resize=True, images_shape=(image_size,image_size,3), bgr=False)
+        real_images=preprocess_batch_images(real_images, scale=True, resize=True, images_shape=image_size, bgr=False)
         real_labels=real_labels.expression.values[indexes_to_choose]
         real_labels=tf.keras.utils.to_categorical(real_labels, num_classes=num_classes)
 

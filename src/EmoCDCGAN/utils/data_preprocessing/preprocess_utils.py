@@ -22,9 +22,9 @@ def preprocess_image(img, scale=True, resize=True, needed_shape=(224,224,3), bgr
 
 def preprocess_batch_images(images:ndarray, scale:bool=True, resize:bool=True, images_shape:tuple=(224,224,3), bgr:bool=False):
     if resize:
-        new_images=np.zeros(shape=(images.shape[0],)+images_shape)
+        new_images=np.zeros(shape=(images.shape[0],)+images_shape).astype('float32')
     else:
-        new_images=images
+        new_images=images.astype('float32')
     for i in range(images.shape[0]):
         new_images[i]=preprocess_image(images[i], scale, resize, images_shape, bgr)
     new_images=new_images.astype('float32')

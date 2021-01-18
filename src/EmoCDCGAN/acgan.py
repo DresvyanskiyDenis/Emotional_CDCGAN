@@ -74,13 +74,18 @@ class ACGAN():
         # add noise for real images
         real_images = real_images + 0.05*np.random.normal(size=real_images.shape)
 
-
         # concatenate
         train_discriminator_batch_images = np.concatenate([fake_images, real_images], axis=0).astype('float32')
         train_discriminator_labels_images = np.concatenate([fake_labels, real_labels], axis=0)
         y_discriminator = np.ones((batch_size * 2,))
         y_discriminator[:batch_size] = 0
         y_discriminator = add_noise_in_labels(y_discriminator)
+
+
+        permut=np.random.permutation(train_discriminator_batch_images.shape[0])
+        train_discriminator_batch_images = train_discriminator_batch_images[permut]
+        train_discriminator_labels_images = train_discriminator_labels_images[permut]
+        y_discriminator = y_discriminator[permut]
 
         # train discriminator
         discriminator_loss = 0

@@ -71,6 +71,10 @@ class ACGAN():
         fake_labels = np.eye(self.num_classes)[indexes_to_choose]
         fake_images = self.generator.predict([z, fake_labels], batch_size=1)
 
+        # add noise for real images
+        real_images = real_images + 0.05*np.random.normal(size=real_images.shape)
+
+
         # concatenate
         train_discriminator_batch_images = np.concatenate([fake_images, real_images], axis=0).astype('float32')
         train_discriminator_labels_images = np.concatenate([fake_labels, real_labels], axis=0)

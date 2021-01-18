@@ -26,7 +26,7 @@ def train():
     num_classes=7
     image_size=(128, 128, 3)
     batch_size=int(64)
-    mini_batch_size=64
+    mini_batch_size=128
     train_steps=40000
     validate_each_step=100
 
@@ -48,8 +48,8 @@ def train():
     #generator_model.load_weights('saved_models/generator.h5')
 
     # discriminator model
-    discriminator_model=acgan.create_discriminator(dropout_rate=0.2)
-    optimizer_disc = tf.optimizers.RMSprop(learning_rate=0.0002, decay=6e-8)
+    discriminator_model=acgan.create_discriminator(dropout_rate=0.4)
+    optimizer_disc = tf.optimizers.RMSprop(learning_rate=0.0001, decay=2e-8)
     #discriminator_model.load_weights('saved_models/discriminator.h5')
     discriminator_model.compile(optimizer=optimizer_disc, loss={'output_fake_real':'binary_crossentropy',
                                                                 'output_class_num':'categorical_crossentropy'},
@@ -60,7 +60,7 @@ def train():
 
     # adversarial model
     adversarial_model=acgan.create_adversarial_network(generator_model, discriminator_model)
-    optimizer_adv=tf.keras.optimizers.RMSprop(learning_rate=0.0001, decay=3e-8)
+    optimizer_adv=tf.keras.optimizers.RMSprop(learning_rate=0.0001, decay=1e-8)
     adversarial_model.compile(optimizer=optimizer_adv, loss={'discriminator':'binary_crossentropy',
                                                             'discriminator_1':'categorical_crossentropy'},
                               metrics={'discriminator':binary_accuracy})
@@ -87,7 +87,8 @@ def train():
                                                                                    real_images=real_images,
                                                                                    real_labels=real_labels)
         # train generator
-        adversarial_loss, adversarial_acc = acgan.train_generator_one_step(batch_size=batch_size*2,
+        gen_batch_size=batch_size*2
+        adversarial_loss, adversarial_acc = acgan.train_generator_one_step(batch_size=gen_batch_size,
                                        mini_batch_size=mini_batch_size)
 
         # print the losses

@@ -88,7 +88,7 @@ class SimpleGAN():
         # train generator
         z = np.random.normal(size=(int(batch_size), self.latent_space_shape))
         y_adversarial_network = np.ones((batch_size,))
-        y_adversarial_network = add_noise_in_labels(y_adversarial_network)
+        #y_adversarial_network = add_noise_in_labels(y_adversarial_network)
 
         # train adversarial model
         adversarial_loss = 0

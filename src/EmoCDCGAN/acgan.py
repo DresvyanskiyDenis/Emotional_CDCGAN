@@ -3,10 +3,16 @@ import os
 
 from numpy.core.multiarray import ndarray
 
-from src.EmoCDCGAN.models import create_simple_generator, create_simple_discriminator
+from src.EmoCDCGAN.models import create_simple_generator, create_simple_discriminator, PixelNormLayer
 import numpy as np
 
 from src.EmoCDCGAN.utils.data_preprocessing.preprocess_utils import add_noise_in_labels
+
+def binary_accuracy(y_true, y_pred):
+    '''Calculates the mean accuracy rate across all predictions for binary
+    classification problems.
+    '''
+    return tf.keras.backend.mean(tf.keras.backend.equal(tf.keras.backend.round(y_true), tf.keras.backend.round(y_pred)))
 
 
 class ACGAN():
@@ -17,6 +23,25 @@ class ACGAN():
     num_classes:int
     image_size:tuple
 
+    def load_models(self,path_to_models:str):
+        self.adversarial=tf.keras.models.load_model(os.path.join(path_to_models,'adversarial.h5'), custom_objects={'PixelNormLayer': PixelNormLayer})
+        self.generator=tf.keras.Model(inputs=self.adversarial.inputs, outputs=[self.adversarial.get_layer('generator_output').output])
+        disc_tmp=tf.keras.models.load_model(os.path.join(path_to_models,'discriminator.h5'))
+        discriminator_optimizer=disc_tmp.optimizer
+        self.discriminator=tf.keras.Model(inputs=[self.adversarial.get_layer('discriminator').input], outputs=self.adversarial.get_layer('discriminator').outputs)
+
+        self.adversarial.compile(loss={'discriminator': 'binary_crossentropy',
+                                        'discriminator_1': 'categorical_crossentropy'},
+                                  metrics={'discriminator': binary_accuracy})
+        self.discriminator.compile(optimizer=discriminator_optimizer, loss={'output_fake_real': 'binary_crossentropy',
+                                                                    'output_class_num': 'categorical_crossentropy'},
+                                    loss_weights={'output_fake_real': 1,
+                                                  'output_class_num': 1},
+                                    metrics={'output_fake_real': binary_accuracy})
+        del disc_tmp
+        gc.collect()
+
+        return self.generator, self.discriminator, self.adversarial
 
 
     def __init__(self, latent_space_shape:int, num_classes:int, image_size:tuple):

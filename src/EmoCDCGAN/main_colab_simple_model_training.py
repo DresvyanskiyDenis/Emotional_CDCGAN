@@ -20,7 +20,7 @@ def binary_accuracy(y_true, y_pred):
 
 def train():
     load_model=False
-    path_to_data = '/content/drive/MyDrive/Batches'
+    path_to_data = 'D:\\Databases\\AffectNet\\AffectNet\\Batches'
     path_to_save_models = 'saved_models'
     if not os.path.exists(path_to_save_models):
         os.mkdir(path_to_save_models)
@@ -53,26 +53,13 @@ def train():
 
 
     if load_model:
-        generator_model = tf.keras.models.load_model('saved_models/generator.h5', custom_objects={'PixelNormLayer': PixelNormLayer})
-        discriminator_model = tf.keras.models.load_model('saved_models/discriminator.h5', custom_objects={'PixelNormLayer': PixelNormLayer})
-        discriminator_model.compile(loss={'output_fake_real': 'binary_crossentropy',
-                                                                    'output_class_num': 'categorical_crossentropy'},
-                                    loss_weights={'output_fake_real': 1,
-                                                  'output_class_num': 1},
-                                    metrics={'output_fake_real': binary_accuracy})
-        acgan.generator=generator_model
-        acgan.discriminator=discriminator_model
-        adversarial_model = tf.keras.models.load_model('saved_models/adversarial.h5', custom_objects={'PixelNormLayer': PixelNormLayer})
-        adversarial_model.compile(loss={'discriminator': 'binary_crossentropy',
-                                                                 'discriminator_1': 'categorical_crossentropy'},
-                                  metrics={'discriminator': binary_accuracy})
-        acgan.adversarial=adversarial_model
+        generator_model, discriminator_model, adversarial_model = acgan.load_models(path_to_models=path_to_save_models)
     else:
         # generator model
         generator_model = acgan.create_generator(dropout_rate=0.2)
         # discriminator model
         discriminator_model = acgan.create_discriminator(dropout_rate=0.4)
-        optimizer_disc = tf.keras.optimizers.RMSprop(learning_rate=0.00002, decay=1e-8)
+        optimizer_disc = tf.keras.optimizers.RMSprop(learning_rate=0.00002, decay=2e-8)
         discriminator_model.compile(optimizer=optimizer_disc, loss={'output_fake_real': 'binary_crossentropy',
                                                                     'output_class_num': 'categorical_crossentropy'},
                                     loss_weights={'output_fake_real': 1,
@@ -81,14 +68,13 @@ def train():
         discriminator_model.summary()
         # adversarial model
         adversarial_model = acgan.create_adversarial_network(generator_model, discriminator_model)
-        optimizer_adv = tf.keras.optimizers.RMSprop(learning_rate=0.00001, decay=1e-8)
+        optimizer_adv = tf.keras.optimizers.RMSprop(learning_rate=0.00002, decay=2e-8)
         adversarial_model.compile(optimizer=optimizer_adv, loss={'discriminator': 'binary_crossentropy',
                                                                 'discriminator_1': 'categorical_crossentropy'},
                                   metrics={'discriminator': binary_accuracy})
 
     # summaries
     acgan.print_summaries()
-    print(adversarial_model.optimizer)
     acgan.create_model_images(path_to_save_models)
 
     # train process

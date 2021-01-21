@@ -63,6 +63,11 @@ class ACGAN():
         self.discriminator.save_weights(os.path.join(output_path,'discriminator.h5'))
         self.adversarial.save_weights(os.path.join(output_path,'adversarial.h5'))
 
+    def save_models(self, output_path:str=''):
+        self.generator.save(os.path.join(output_path,'generator.h5'))
+        self.discriminator.save(os.path.join(output_path,'discriminator.h5'))
+        self.adversarial.save(os.path.join(output_path,'adversarial.h5'))
+
     def train_discriminator_one_step(self, batch_size:int, mini_batch_size:int, real_images:ndarray, real_labels:ndarray):
         # train discriminator
         # generate random images from generator

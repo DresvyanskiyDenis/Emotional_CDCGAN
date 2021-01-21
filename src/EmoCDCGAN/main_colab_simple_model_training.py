@@ -4,6 +4,7 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 from src.EmoCDCGAN.acgan import ACGAN
+from src.EmoCDCGAN.models import PixelNormLayer
 
 from src.EmoCDCGAN.utils.data_preprocessing.data_packing import unpack_data_and_labels_npy
 from src.EmoCDCGAN.utils.data_preprocessing.preprocess_utils import preprocess_batch_images
@@ -18,10 +19,15 @@ def binary_accuracy(y_true, y_pred):
 
 
 def train():
+    load_model=False
     path_to_data = '/content/drive/MyDrive/Batches'
     path_to_save_models = 'saved_models'
     if not os.path.exists(path_to_save_models):
         os.mkdir(path_to_save_models)
+    if not load_model:
+        f = open(os.path.join(path_to_save_models,"training_info.txt"), "w")
+        f.write("Training info:\n")
+        f.close()
 
     # params
     latent_space_shape = 128
@@ -45,30 +51,44 @@ def train():
     batches_filenames = [item.split('.')[0] for item in batches_filenames]
     batches_filenames = np.array(list(set(batches_filenames)))
 
-    # generator model
-    generator_model = acgan.create_generator(dropout_rate=0.2)
-    # generator_model.load_weights('saved_models/generator.h5')
 
-    # discriminator model
-    discriminator_model = acgan.create_discriminator(dropout_rate=0.4)
-    optimizer_disc = tf.keras.optimizers.RMSprop(learning_rate=0.0001, decay=2e-8)
-    # discriminator_model.load_weights('saved_models/discriminator.h5')
-    discriminator_model.compile(optimizer=optimizer_disc, loss={'output_fake_real': 'binary_crossentropy',
-                                                                'output_class_num': 'categorical_crossentropy'},
-                                loss_weights={'output_fake_real': 1,
-                                              'output_class_num': 1},
-                                metrics={'output_fake_real': binary_accuracy})
-    discriminator_model.summary()
-
-    # adversarial model
-    adversarial_model = acgan.create_adversarial_network(generator_model, discriminator_model)
-    optimizer_adv = tf.keras.optimizers.RMSprop(learning_rate=0.0002, decay=2e-8)
-    adversarial_model.compile(optimizer=optimizer_adv, loss={'discriminator': 'binary_crossentropy',
-                                                             'discriminator_1': 'categorical_crossentropy'},
-                              metrics={'discriminator': binary_accuracy})
+    if load_model:
+        generator_model = tf.keras.models.load_model('saved_models/generator.h5', custom_objects={'PixelNormLayer': PixelNormLayer})
+        discriminator_model = tf.keras.models.load_model('saved_models/discriminator.h5', custom_objects={'PixelNormLayer': PixelNormLayer})
+        discriminator_model.compile(loss={'output_fake_real': 'binary_crossentropy',
+                                                                    'output_class_num': 'categorical_crossentropy'},
+                                    loss_weights={'output_fake_real': 1,
+                                                  'output_class_num': 1},
+                                    metrics={'output_fake_real': binary_accuracy})
+        acgan.generator=generator_model
+        acgan.discriminator=discriminator_model
+        adversarial_model = tf.keras.models.load_model('saved_models/adversarial.h5', custom_objects={'PixelNormLayer': PixelNormLayer})
+        adversarial_model.compile(loss={'discriminator': 'binary_crossentropy',
+                                                                 'discriminator_1': 'categorical_crossentropy'},
+                                  metrics={'discriminator': binary_accuracy})
+        acgan.adversarial=adversarial_model
+    else:
+        # generator model
+        generator_model = acgan.create_generator(dropout_rate=0.2)
+        # discriminator model
+        discriminator_model = acgan.create_discriminator(dropout_rate=0.4)
+        optimizer_disc = tf.keras.optimizers.RMSprop(learning_rate=0.00002, decay=1e-8)
+        discriminator_model.compile(optimizer=optimizer_disc, loss={'output_fake_real': 'binary_crossentropy',
+                                                                    'output_class_num': 'categorical_crossentropy'},
+                                    loss_weights={'output_fake_real': 1,
+                                                  'output_class_num': 1},
+                                    metrics={'output_fake_real': binary_accuracy})
+        discriminator_model.summary()
+        # adversarial model
+        adversarial_model = acgan.create_adversarial_network(generator_model, discriminator_model)
+        optimizer_adv = tf.keras.optimizers.RMSprop(learning_rate=0.00001, decay=1e-8)
+        adversarial_model.compile(optimizer=optimizer_adv, loss={'discriminator': 'binary_crossentropy',
+                                                                'discriminator_1': 'categorical_crossentropy'},
+                                  metrics={'discriminator': binary_accuracy})
 
     # summaries
     acgan.print_summaries()
+    print(adversarial_model.optimizer)
     acgan.create_model_images(path_to_save_models)
 
     # train process
@@ -101,6 +121,13 @@ def train():
             print('i:%i, Discriminator loss:%f, acc:%f, adversarial loss:%f, acc:%f' % (
             train_step, discriminator_loss, discriminator_acc,
             adversarial_loss, adversarial_acc))
+            f = open(os.path.join(path_to_save_models,"training_info.txt"), "a")
+            tmp_str='i:%i, Discriminator loss:%f, acc:%f, adversarial loss:%f, acc:%f\n' % (
+            train_step, discriminator_loss, discriminator_acc,
+            adversarial_loss, adversarial_acc)
+            f.write(tmp_str)
+            f.close()
+
 
         # print the losses
         # print('i:%i, Discriminator loss:%f, acc:%f, adversarial loss:%f, acc:%f' % (train_step, discriminator_loss, discriminator_acc,
@@ -110,7 +137,7 @@ def train():
             generated_images = generator_model.predict([noise_validation, labels_validation], batch_size=1)
             visualize_images(images=generated_images, labels=labels_validation.squeeze().argmax(axis=-1),
                              path_to_save='images', save_name='generated_images_step_%i.png' % train_step)
-            acgan.save_weights_models(path_to_save_models)
+            acgan.save_models(path_to_save_models)
 
 
 if __name__ == "__main__":

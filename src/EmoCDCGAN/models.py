@@ -1,6 +1,17 @@
 import tensorflow as tf
 import numpy as np
 import tensorflow_addons as tfa
+import tensorflow.keras.backend as K
+from tensorflow.keras.layers import Layer
+
+# Pixelwise feature vector normalization.
+class PixelNormLayer(Layer):
+    def __init__(self,**kwargs):
+        super(PixelNormLayer,self).__init__(**kwargs)
+    def call(self, inputs, **kwargs):
+        return inputs / K.sqrt(K.mean(inputs**2, axis=-1, keepdims=True) + 1.0e-8)
+    def compute_output_shape(self, input_shape):
+        return input_shape
 
 def create_simple_generator(input_x, input_y, discriminator_output_map_shape=(1,1,256), dropout_rate=0.2):
     alfa_relu=0.2
@@ -11,7 +22,7 @@ def create_simple_generator(input_x, input_y, discriminator_output_map_shape=(1,
                               discriminator_output_map_shape[1] *
                               discriminator_output_map_shape[2], activation=None)(x)
     #x = tf.keras.layers.Reshape(discriminator_output_map_shape)(x)
-    x = tfa.layers.GroupNormalization(group)(x)
+    x = PixelNormLayer()(x)
     x = tf.keras.layers.Reshape(discriminator_output_map_shape)(x)
     x = tf.keras.layers.LeakyReLU(0.2)(x)
     #x = tf.keras.layers.Dropout(dropout_rate)(x)

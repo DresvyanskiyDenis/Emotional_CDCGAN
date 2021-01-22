@@ -23,24 +23,24 @@ class ACGAN():
     num_classes:int
     image_size:tuple
 
-    def load_models(self,path_to_models:str):
-        self.adversarial=tf.keras.models.load_model(os.path.join(path_to_models,'adversarial.h5'), custom_objects={'PixelNormLayer': PixelNormLayer})
-        self.generator=tf.keras.Model(inputs=self.adversarial.inputs, outputs=[self.adversarial.get_layer('generator_output').output])
-        disc_tmp=tf.keras.models.load_model(os.path.join(path_to_models,'discriminator.h5'))
-        discriminator_optimizer=disc_tmp.optimizer
-        self.discriminator=tf.keras.Model(inputs=[self.adversarial.get_layer('discriminator').input], outputs=self.adversarial.get_layer('discriminator').outputs)
 
-        self.adversarial.compile(loss={'discriminator': 'binary_crossentropy',
-                                        'discriminator_1': 'categorical_crossentropy'},
-                                  metrics={'discriminator': binary_accuracy})
-        self.discriminator.compile(optimizer=discriminator_optimizer, loss={'output_fake_real': 'binary_crossentropy',
+    def load_models(self,path_to_models:str):
+        self.discriminator=tf.keras.models.load_model(os.path.join(path_to_models,'discriminator.h5'), custom_objects={'PixelNormLayer': PixelNormLayer})
+        self.generator=tf.keras.models.load_model(os.path.join(path_to_models,'generator.h5'), custom_objects={'PixelNormLayer': PixelNormLayer},compile=False)
+        self.discriminator.trainable = True
+        self.discriminator.compile(optimizer=self.discriminator.optimizer, loss={'output_fake_real': 'binary_crossentropy',
                                                                     'output_class_num': 'categorical_crossentropy'},
                                     loss_weights={'output_fake_real': 1,
                                                   'output_class_num': 1},
-                                    metrics={'output_fake_real': binary_accuracy})
-        del disc_tmp
+                                   metrics={'output_fake_real': binary_accuracy})
+        adv_tmp=tf.keras.models.load_model(os.path.join(path_to_models,'adversarial.h5'), custom_objects={'PixelNormLayer': PixelNormLayer})
+        adv_opt=adv_tmp.optimizer
+        self.adversarial=self.create_adversarial_network(self.generator, self.discriminator)
+        self.adversarial.compile(optimizer=adv_opt, loss={'discriminator': 'binary_crossentropy',
+                                        'discriminator_1': 'categorical_crossentropy'},
+                                  metrics={'discriminator': binary_accuracy})
+        del adv_tmp
         gc.collect()
-
         return self.generator, self.discriminator, self.adversarial
 
 
@@ -130,6 +130,7 @@ class ACGAN():
             discriminator_acc += loss[-1]
         discriminator_loss /= float(train_discriminator_batch_images.shape[0] // mini_batch_size)
         discriminator_acc /= float(train_discriminator_batch_images.shape[0] // mini_batch_size)
+        #print(self.discriminator.layers[3].weights[0])
         return [discriminator_loss, discriminator_acc]
 
     def train_generator_one_step(self, batch_size:int, mini_batch_size:int):

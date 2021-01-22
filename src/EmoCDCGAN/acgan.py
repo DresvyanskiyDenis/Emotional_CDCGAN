@@ -1,6 +1,6 @@
 import tensorflow as tf
 import os
-
+import gc
 from numpy.core.multiarray import ndarray
 
 from src.EmoCDCGAN.models import create_simple_generator, create_simple_discriminator, PixelNormLayer

@@ -53,7 +53,8 @@ def add_discriminator_block(old_model, n_input_layers=3):
     model1 = tf.keras.Model(in_image, d)
     # compile model
     model1.compile(loss=wasserstein_loss,
-                   optimizer=tf.keras.optimizers.Adam(lr=0.001, beta_1=0, beta_2=0.99, epsilon=10e-8))
+                   optimizer=tf.keras.optimizers.Adam(lr=0.001, beta_1=0, beta_2=0.99, epsilon=10e-8),
+                  metrics=[binary_accuracy])
     # downsample the new larger image
     downsample = tf.keras.layers.AveragePooling2D()(in_image)
     # connect old input processing to downsampled new input
